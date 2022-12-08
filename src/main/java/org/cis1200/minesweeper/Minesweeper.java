@@ -30,7 +30,7 @@ public class Minesweeper {
 
     private String[][] hiddenBoard;
 
-    private int numTurns;
+    private int numMines;
     private boolean player1;
     private boolean gameOver;
 
@@ -54,55 +54,49 @@ public class Minesweeper {
      * @return whether the turn was successful
      */
     public boolean playTurn(int col, int row) {
-        if (hiddenBoard[row][col].equals("+")) {
-            board[row][col] = "*";
-            gameOver = true;
-            return false;
-        } else if (board[row][col].equals(" ")) {
-            board[row][col] = hiddenBoard[row][col];
-            if (hiddenBoard[row][col].equals("0")) {
-                for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, 29); r++) {
-                    for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, 15); c++) {
-                        if (!hiddenBoard[r][c].equals("+")) {
-                            if (hiddenBoard[r][c].equals("0")) {
-                                playTurn(c, r);
+        if (!gameOver) {
+            if (hiddenBoard[row][col].equals("+")) {
+                board[row][col] = "*";
+                gameOver = true;
+                return false;
+            } else if (board[row][col].equals(" ")) {
+                board[row][col] = hiddenBoard[row][col];
+                if (hiddenBoard[row][col].equals("0")) {
+                    for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, 29); r++) {
+                        for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, 15); c++) {
+                            if (!hiddenBoard[r][c].equals("+")) {
+                                if (hiddenBoard[r][c].equals("0")) {
+                                    playTurn(c, r);
+                                }
+                                board[r][c] = hiddenBoard[r][c];
                             }
-                            board[r][c] = hiddenBoard[r][c];
                         }
                     }
                 }
-            }
 
+            }
+            printGameState();
+            return true;
         }
-        printGameState();
-//        if (board[r][c] != 0 || gameOver) {
-//            return false;
-//        }
-//
-//        if (player1) {
-//            board[r][c] = 1;
-//        } else {
-//            board[r][c] = 2;
-//        }
-//
-//        numTurns++;
-//        if (checkWinner() == 0) {
-//            player1 = !player1;
-//        }
-        return true;
+        return false;
     }
 
     public boolean playFlag(int col, int row) {
-        if (board[row][col].equals(" ")) {
-            if (hiddenBoard[row][col].equals("+")) {
-                board[row][col] = "M";
-            } else {
-                board[row][col] = "F";
+        if (!gameOver) {
+            if (board[row][col].equals(" ")) {
+                if (hiddenBoard[row][col].equals("+")) {
+                    board[row][col] = "M";
+                } else {
+                    board[row][col] = "F";
+                }
+                numMines--;
+            } else if (board[row][col].equals("M") || board[row][col].equals("F")) {
+                board[row][col] = " ";
+                numMines++;
             }
-        } else if (board[row][col].equals("M") || board[row][col].equals("F")) {
-            board[row][col] = " ";
+            return true;
         }
-        return true;
+        return false;
     }
 
         /**
@@ -170,10 +164,10 @@ public class Minesweeper {
             }
         }
 
-        //randomly generate positions for 99 mines
+        //randomly generate positions for numMines
         NumberGenerator ng = new RandomNumberGenerator();
         int i = 0;
-        while (i <= 99) {
+        while (i <= numMines) {
             int x = ng.next(30);
             int y = ng.next(16);
             if (!hiddenBoard[x][y].equals("+")) {
@@ -202,7 +196,7 @@ public class Minesweeper {
         }
         printGameState();
 
-        numTurns = 0;
+//        numTurns = 0;
 //        player1 = true;
         gameOver = false;
     }
@@ -218,6 +212,13 @@ public class Minesweeper {
         return gameOver;
     }
 
+    public int getNumMines() {
+        return numMines;
+    }
+    public void setNumMines(int num) {
+        numMines = num;
+    }
+
     /**
      * getCell is a getter for the contents of the cell specified by the method
      * arguments.
@@ -229,6 +230,10 @@ public class Minesweeper {
      */
     public String getCell(int c, int r) {
         return board[r][c];
+    }
+
+    public String getHiddenCell(int c, int r) {
+        return hiddenBoard[r][c];
     }
 
     /**

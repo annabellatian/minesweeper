@@ -41,6 +41,7 @@ public class GameBoard extends JPanel {
 
     public static final int CELL_HEIGHT = 18;
 
+
     /**
      * Initializes the game board.
      */
@@ -78,6 +79,17 @@ public class GameBoard extends JPanel {
      * (Re-)sets the game to its initial state.
      */
     public void reset() {
+        ms.setNumMines(99);
+        ms.reset();
+        status.setText("Start playing!");
+        repaint();
+
+        // Makes sure this component has keyboard/mouse focus
+        requestFocusInWindow();
+    }
+
+    public void save() {
+        ms.setNumMines(99);
         ms.reset();
         status.setText("Start playing!");
         repaint();
@@ -91,7 +103,9 @@ public class GameBoard extends JPanel {
      */
     private void updateStatus() {
         if (ms.getGameOver()) {
-            status.setText("Game Over");
+            status.setText("Number of Mines Left: " + ms.getNumMines());
+        } else {
+            status.setText("Number of Mines Left: " + ms.getNumMines());
         }
 //        if (ms.getCurrentPlayer()) {
 //            status.setText("Player 1's Turn");
@@ -142,7 +156,10 @@ public class GameBoard extends JPanel {
                             new int[] {y + 6, y + 14, y + 14}, 3);
                 } else if (cell.equals("*")) {
                     g.setColor(Color.BLACK);
-                    g.fillOval(x + (CELL_WIDTH / 4), y + (CELL_HEIGHT / 4), 10, 10);
+                    g.fillOval(x + (CELL_WIDTH / 4) + 1, y + (CELL_HEIGHT / 4), 10, 10);
+                } else if (ms.getHiddenCell(i, j).equals("+") && ms.getGameOver()) {
+                    g.setColor(Color.BLACK);
+                    g.fillOval(x + (CELL_WIDTH / 4) + 1, y + (CELL_HEIGHT / 4), 10, 10);
                 } else {
                     switch (cell) {
                         case "1" -> g.setColor(Color.BLUE);
@@ -154,7 +171,7 @@ public class GameBoard extends JPanel {
                         case "7" -> g.setColor(Color.BLACK);
                         default -> g.setColor(Color.GRAY);
                     }
-                    g.drawString(cell, (i * 22) + 7, (j * 18) + 14);
+                    g.drawString(cell, (i * CELL_WIDTH) + 7, (j * CELL_HEIGHT) + 14);
                 }
             }
         }

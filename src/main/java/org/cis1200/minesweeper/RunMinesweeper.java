@@ -48,7 +48,22 @@ public class RunMinesweeper implements Runnable {
 
         final JButton instructions = new JButton("Instructions");
         instructions.addActionListener(e -> JOptionPane.showMessageDialog(frame,
-                "Instructions for Minesweeper"));
+                "Instructions for Minesweeper" +
+                        "Minesweeper is a game where mines are hidden in a grid of squares. Safe squares have " +
+                        "numbers telling you how many mines touch the square. You can use the number clues to solve " +
+                        "the game by opening all of the safe squares. If you click on a mine you lose the game!\n" +
+                        "\n" +
+                        "You open squares with the left mouse button and put flags on mines with the right mouse " +
+                        "button. Pressing the right mouse button again removes the flag. When you open a square " +
+                        "that does not touch any mines, it will be empty and the adjacent squares will " +
+                        "automatically open in all directions until reaching squares that contain numbers. A common " +
+                        "strategy for starting games is to randomly click until you get a big opening with lots " +
+                        "of numbers.\n" +
+                        "\n" +
+                        "If you flag all of the mines touching a number, chording on the number opens the remaining " +
+                        "squares. Chording is when you press both mouse buttons at the same time. This can save you " +
+                        "a lot of work! However, if you place the correct number of flags on the wrong squares, " +
+                        "chording will explode the mines."));
         control_panel.add(instructions);
 
         // Note here that when we add an action listener to the reset button, we
@@ -58,6 +73,10 @@ public class RunMinesweeper implements Runnable {
         final JButton reset = new JButton("Reset");
         reset.addActionListener(e -> board.reset());
         control_panel.add(reset);
+
+        final JButton save = new JButton("Reset");
+        reset.addActionListener(e -> board.save());
+        control_panel.add(save);
 
         // Put the frame on the screen
         frame.pack();
