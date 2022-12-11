@@ -1,11 +1,5 @@
 package org.cis1200.minesweeper;
 
-/*
- * CIS 120 HW09 - TicTacToe Demo
- * (c) University of Pennsylvania
- * Created by Bayley Tuch, Sabrina Green, and Nicolas Corona in Fall 2020.
- */
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -13,35 +7,14 @@ import java.awt.event.MouseEvent;
 import java.io.*;
 import java.nio.file.Paths;
 
-/**
- * This class instantiates a TicTacToe object, which is the model for the game.
- * As the user clicks the game board, the model is updated. Whenever the model
- * is updated, the game board repaints itself and updates its status JLabel to
- * reflect the current state of the model.
- * 
- * This game adheres to a Model-View-Controller design framework. This
- * framework is very effective for turn-based games. We STRONGLY
- * recommend you review these lecture slides, starting at slide 8,
- * for more details on Model-View-Controller:
- * https://www.seas.upenn.edu/~cis120/current/files/slides/lec37.pdf
- * 
- * In a Model-View-Controller framework, GameBoard stores the model as a field
- * and acts as both the controller (with a MouseListener) and the view (with
- * its paintComponent method and the status JLabel).
- */
 @SuppressWarnings("serial")
 public class GameBoard extends JPanel {
-
     private Minesweeper ms; // model for the game
     private JLabel status; // current status text
-
-    // Game constants
     private static int boardWidth = 25;
     private static int boardHeight = 25;
-    private static int numMines;
-
+    private static int numMines = 99;
     public static final int CELL_WIDTH = 20;
-
     public static final int CELL_HEIGHT = 20;
 
     /**
@@ -53,7 +26,7 @@ public class GameBoard extends JPanel {
         }
         boardHeight = height;
         boardWidth = width;
-        this.numMines = numMines;
+        GameBoard.numMines = numMines;
         // creates border around the court area, JComponent method
         setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
@@ -96,16 +69,21 @@ public class GameBoard extends JPanel {
         requestFocusInWindow();
     }
 
-    public void save() {
+    /**
+     * save allows the user to save the state of the game and runs when the
+     * user clicks the 'Save Game' button. It writes to a text file the board
+     * and hiddenBoard arrays as well as the number of flags and mines.
+     */
+    public void save() throws IOException {
         File file = Paths.get("files/savedGame.txt").toFile();
         BufferedWriter bw;
         try {
             bw = new BufferedWriter(new FileWriter(file));
             String[][] board = ms.getBoard();
             String[][] hiddenBoard = ms.getHiddenBoard();
-            for (int i = 0; i < board.length; i++) {
+            for (String[] strings : board) {
                 for (int j = 0; j < board[0].length; j++) {
-                    bw.write(board[i][j] + ",");
+                    bw.write(strings[j] + ",");
                 }
                 bw.write("\n");
             }
@@ -121,34 +99,31 @@ public class GameBoard extends JPanel {
             bw.write(String.valueOf(ms.getNumFlags()));
             bw.close();
         } catch (IOException e) {
-            throw new RuntimeException();
+            throw new IOException();
         }
         // Makes sure this component has keyboard/mouse focus
         requestFocusInWindow();
     }
 
+    /**
+     * resume allows the user to resume a past state of the game and runs when
+     * the user clicks the 'Resume Game' button. It reads from a text file the
+     * saved board and hiddenBoard arrays as well as the number of flags and
+     * mines. It uses the data to set the board and hiddenBoard variables and
+     * repaint the board.
+     */
     public void resume() {
         try {
-            System.out.println("RESUME SECTION");
             BufferedReader br = FileLineIterator.fileToReader("files/savedGame.txt");
             FileLineIterator li = new FileLineIterator(br);
             String[][] board = new String[25][25];
             String[][] hiddenBoard = new String[25][25];
             for (int i = 0; i < board.length; i++) {
                 board[i] = li.next().split(",");
-                for (String s : board[i]) {
-                    System.out.print(s + " ");
-                }
-                System.out.println();
             }
             li.next();
-            System.out.println("HIDDENBOARD");
             for (int i = 0; i < board.length; i++) {
                 hiddenBoard[i] = li.next().split(",");
-                for (String s : hiddenBoard[i]) {
-                    System.out.print(s + " ");
-                }
-                System.out.println();
             }
             ms.setNumMines(Integer.parseInt(li.next()));
             ms.setNumFlags(Integer.parseInt(li.next()));
@@ -179,13 +154,6 @@ public class GameBoard extends JPanel {
 
     /**
      * Draws the game board.
-     * 
-     * There are many ways to draw a game board. This approach
-     * will not be sufficient for most games, because it is not
-     * modular. All of the logic for drawing the game board is
-     * in this method, and it does not take advantage of helper
-     * methods. Consider breaking up your paintComponent logic
-     * into multiple methods or classes, like Mushroom of Doom.
      */
     @Override
     public void paintComponent(Graphics g) {
@@ -230,7 +198,11 @@ public class GameBoard extends JPanel {
                         case "7" -> g.setColor(Color.BLACK);
                         default -> g.setColor(Color.GRAY);
                     }
-                    g.drawString(cell, (i * CELL_WIDTH) + 6, (j * CELL_HEIGHT) + 14);
+                    if (cell.equals("0")) {
+                        g.drawString(" ", (i * CELL_WIDTH) + 6, (j * CELL_HEIGHT) + 14);
+                    } else {
+                        g.drawString(cell, (i * CELL_WIDTH) + 6, (j * CELL_HEIGHT) + 14);
+                    }
                 }
             }
         }
@@ -248,8 +220,8 @@ public class GameBoard extends JPanel {
         ms.playTurn(r, c);
     }
 
-    public void playFlag(int c, int r) {
-        ms.playFlag(r, c);
+    public boolean playFlag(int c, int r) {
+        return ms.playFlag(r, c);
     }
 
     public String getCell(int c, int r) {
@@ -264,8 +236,20 @@ public class GameBoard extends JPanel {
         return ms.numberOfAdjacentMines(r, c);
     }
 
+    public boolean checkWinner() {
+        return ms.checkWinner();
+    }
+
     public boolean getGameOver() {
         return ms.getGameOver();
+    }
+
+    public String[][] getBoard() {
+        return ms.getBoard();
+    }
+
+    public String[][] getHiddenBoard() {
+        return ms.getHiddenBoard();
     }
 
     /**

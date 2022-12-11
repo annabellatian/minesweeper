@@ -1,32 +1,11 @@
 package org.cis1200.minesweeper;
 
-/*
- * CIS 120 HW09 - TicTacToe Demo
- * (c) University of Pennsylvania
- * Created by Bayley Tuch, Sabrina Green, and Nicolas Corona in Fall 2020.
- */
-
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
-/**
- * This class sets up the top-level frame and widgets for the GUI.
- * 
- * This game adheres to a Model-View-Controller design framework. This
- * framework is very effective for turn-based games. We STRONGLY
- * recommend you review these lecture slides, starting at slide 8,
- * for more details on Model-View-Controller:
- * https://www.seas.upenn.edu/~cis120/current/files/slides/lec37.pdf
- * 
- * In a Model-View-Controller framework, Game initializes the view,
- * implements a bit of controller functionality through the reset
- * button, and then instantiates a GameBoard. The GameBoard will
- * handle the rest of the game's view and controller functionality, and
- * it will instantiate a TicTacToe object to serve as the game's model.
- */
 public class RunMinesweeper implements Runnable {
     public void run() {
-        // NOTE: the 'final' keyword denotes immutability even for local variables.
 
         // Top-level frame in which game components live
         final JFrame frame = new JFrame("Minesweeper");
@@ -39,54 +18,63 @@ public class RunMinesweeper implements Runnable {
         status_panel.add(status);
 
         // Game board
-        final GameBoard board = new GameBoard(25, 25, 99, status);
+        final GameBoard board = new GameBoard(5, 5, 5, status);
         frame.add(board, BorderLayout.CENTER);
         frame.setPreferredSize(board.getPreferredSize());
 
-        // Reset button
         final JPanel control_panel = new JPanel();
         frame.add(control_panel, BorderLayout.NORTH);
 
+        // Instructions button
         final JButton instructions = new JButton("Instructions");
         instructions.addActionListener(
             e -> JOptionPane.showMessageDialog(frame,
-            "Minesweeper is a game where mines are hidden in a grid of squares. " +
-                    " Safe squares have \nnumbers telling you how many mines touch the square. " +
-                    "You can use the number clues to \n solve the game by opening all " +
-                    "of the safe squares. If you click on a mine you lose \n" +
-                    "the game!\n" + "\n" + "You open squares with the left mouse button " +
-                    "and put flags on mines with the right mouse \n" +
-                    "button. Pressing the right mouse button again removes the flag. " +
-                    "When you open a square \n that does not touch any mines, it will " +
-                    "be empty and the adjacent squares will \n" +
-                    "automatically open in all directions until reaching squares that c" +
-                    "ontain numbers. A \ncommon strategy for starting games is to randomly " +
-                    "click until you get a big opening \nwith lots of numbers.\n" + "\n" +
-                    "The status bar shows how many mines remain based on the number " +
-                    "of flags placed. If a \nsquare is flagged, but there is no mine, " +
-                    "the status will still update. You cannot place \n" +
-                    "more flags down than there are mines on the board - the flag " +
-                    "function will automatically \ndisable. Once you uncover all the " +
-                    "squares with no mines, you win the game! \n",
+            "Minesweeper is a game where mines are hidden in a grid of squares. \n" +
+                    "Safe squares have numbers telling you how many mines are in adjacent \n" +
+                    "squares. You can use the number clues to solve the game by opening all \n" +
+                    "of the safe squares. If you click on a mine you lose the game and all \n" +
+                    "the mines will be revealed!\n" + "\n" +
+                    "To open squares, click with the left mouse button and to place down \n" +
+                    "flags on mines, click with the right mouse button. Pressing the right \n" +
+                    "mouse button again removes the flag. When you open a square that does \n" +
+                    "not touch any mines, it will be empty and the adjacent squares will \n" +
+                    "automatically open in all directions until reaching squares that \n" +
+                    "contain numbers. A common strategy for starting games is to randomly \n" +
+                    "click until you get a big opening with lots of numbers.\n" + "\n" +
+                    "The status bar shows how many mines remain based on the number of \n" +
+                    "flags placed. If a square is flagged, but there is no mine, the status \n" +
+                    "will still update. You cannot place more flags down than there are \n" +
+                    "mines on the board - the flag function will automatically disable and \n" +
+                    "you will not be able to place down another flag until you remove an \n" +
+                    "existing flag. Once you uncover all the squares with no mines, you win " +
+                    "the game! \n" + "\n" +
+                    "To save your game progress, you can click 'Save Game' in the control \n" +
+                    "panel - your game is not automatically saved. To resume the last saved \n" +
+                    "game/game state, click on 'Resume Game' in the control panel.",
                     "Instructions for Minesweeper",
                     JOptionPane.INFORMATION_MESSAGE
                 )
         );
         control_panel.add(instructions);
 
-        // Note here that when we add an action listener to the reset button, we
-        // define it as an anonymous inner class that is an instance of
-        // ActionListener with its actionPerformed() method overridden. When the
-        // button is pressed, actionPerformed() will be called.
+        // Reset button
         final JButton reset = new JButton("Reset");
         reset.addActionListener(e -> board.reset());
         control_panel.add(reset);
 
+        // Save Game button
         final JButton save = new JButton("Save Game");
-        save.addActionListener(e -> board.save());
+        save.addActionListener(e -> {
+            try {
+                board.save();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         control_panel.add(save);
 
-        final JButton resume = new JButton("Resume Prev Game");
+        // Resume button
+        final JButton resume = new JButton("Resume Game");
         resume.addActionListener(e -> board.resume());
         control_panel.add(resume);
 

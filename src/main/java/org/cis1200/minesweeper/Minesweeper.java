@@ -2,38 +2,12 @@ package org.cis1200.minesweeper;
 
 import java.util.Arrays;
 
-/**
- * CIS 120 HW09 - TicTacToe Demo
- * (c) University of Pennsylvania
- * Created by Bayley Tuch, Sabrina Green, and Nicolas Corona in Fall 2020.
- */
-
-/**
- * This class is a model for TicTacToe.
- * 
- * This game adheres to a Model-View-Controller design framework.
- * This framework is very effective for turn-based games. We
- * STRONGLY recommend you review these lecture slides, starting at
- * slide 8, for more details on Model-View-Controller:
- * https://www.seas.upenn.edu/~cis120/current/files/slides/lec36.pdf
- * 
- * This model is completely independent of the view and controller.
- * This is in keeping with the concept of modularity! We can play
- * the whole game from start to finish without ever drawing anything
- * on a screen or instantiating a Java Swing object.
- * 
- * Run this file to see the main method play a game of TicTacToe,
- * visualized with Strings printed to the console.
- */
 public class Minesweeper {
-
     private String[][] board;
-
     private String[][] hiddenBoard;
-
     private static int boardWidth = 25;
     private static int boardHeight = 25;
-    public static final int NUM_MINES_MAX = 99;
+    public static int numMinesMax = 99;
     private static int numMines;
     private static int numFlags = 0;
     private boolean gameOver;
@@ -45,16 +19,16 @@ public class Minesweeper {
     public Minesweeper(int width, int height, int numMines) {
         boardWidth = width;
         boardHeight = height;
-        this.numMines = numMines;
+        Minesweeper.numMinesMax = numMines;
+        Minesweeper.numMines = numMines;
         reset();
     }
 
     /**
-     * playTurn allows players to play a turn. Returns true if the move is
+     * playTurn allows the user to play a turn. Returns true if the move is
      * successful and false if a player tries to play in a location that is
-     * taken or after the game has ended. If the turn is successful and the game
-     * has not ended, the player is changed. If the turn is unsuccessful or the
-     * game has ended, the player is not changed.
+     * taken or results in game over. If the turn is successful and the game
+     * has not ended, the cell is updated.
      *
      * @param col column to play in
      * @param row row to play in
@@ -62,11 +36,11 @@ public class Minesweeper {
      */
     public boolean playTurn(int col, int row) {
         if (!gameOver) {
-            if (hiddenBoard[row][col].equals("+")) {
+            if (board[row][col].equals("M") || board[row][col].equals("F")) {
+                return false;
+            } else if (hiddenBoard[row][col].equals("+")) {
                 board[row][col] = "*";
                 gameOver = true;
-                return false;
-            } else if (board[row][col].equals("M") || board[row][col].equals("F")) {
                 return false;
             } else if (board[row][col].equals(" ")) {
                 board[row][col] = hiddenBoard[row][col];
@@ -93,20 +67,32 @@ public class Minesweeper {
         return false;
     }
 
+    /**
+     * playFlag allows the user to play a turn. Returns true if the move is
+     * successful and false if a user tries to play in a location that a
+     * flag cannot be placed or if the game is over. If the turn is successful
+     * and the game has not ended, the flag is placed and cell is updated.
+     *
+     * @param col column to play in
+     * @param row row to play in
+     * @return whether the flag was successful
+     */
     public boolean playFlag(int col, int row) {
         if (!gameOver) {
             if (board[row][col].equals(" ")) {
-                if (hiddenBoard[row][col].equals("+")) {
+                if (numFlags == numMinesMax) {
+                    return false;
+                } else if (hiddenBoard[row][col].equals("+")) {
                     board[row][col] = "M";
-                    this.numMines--;
+                    numMines--;
                 } else {
                     board[row][col] = "F";
                 }
-                this.numFlags++;
+                numFlags++;
             } else if (board[row][col].equals("M") || board[row][col].equals("F")) {
                 board[row][col] = " ";
-                this.numMines++;
-                this.numFlags--;
+                numMines++;
+                numFlags--;
             }
             return true;
         }
@@ -115,10 +101,8 @@ public class Minesweeper {
 
     /**
      * checkWinner checks whether the game has reached a win condition.
-     * checkWinner only looks for horizontal wins.
      *
-     * @return 0 if nobody has won yet, 1 if player 1 has won, and 2 if player 2
-     *         has won, 3 if the game hits stalemate
+     * @return whether the game is won or not
      */
     public boolean checkWinner() {
         for (int i = 0; i < board.length; i++) {
@@ -131,26 +115,6 @@ public class Minesweeper {
                 }
             }
         }
-        // Check horizontal win
-        // for (int i = 0; i < board.length; i++) {
-        // if (board[i][0] == board[i][1] &&
-        // board[i][1] == board[i][2] &&
-        // board[i][1] != 0) {
-        // gameOver = true;
-        // if (player1) {
-        // return 1;
-        // } else {
-        // return 2;
-        // }
-        // }
-        // }
-        //
-        // if (numTurns >= 9) {
-        // gameOver = true;
-        // return 3;
-        // } else {
-        // return 0;
-        // }
         return true;
     }
 
@@ -159,16 +123,16 @@ public class Minesweeper {
      * for debugging.
      */
     public void printGameState() {
-        for (int row = 0; row < board.length; row++) {
+        for (String[] strings : board) {
             for (int col = 0; col < board[0].length; col++) {
-                System.out.print(board[row][col] + " ");
+                System.out.print(strings[col] + " ");
             }
             System.out.println("");
         }
         System.out.println("\n");
-        for (int row = 0; row < hiddenBoard.length; row++) {
+        for (String[] strings : hiddenBoard) {
             for (int col = 0; col < hiddenBoard[0].length; col++) {
-                System.out.print(hiddenBoard[row][col] + " ");
+                System.out.print(strings[col] + " ");
             }
             System.out.println("");
         }
@@ -190,7 +154,7 @@ public class Minesweeper {
         // randomly generate positions for numMines
         NumberGenerator ng = new RandomNumberGenerator();
         int i = 0;
-        while (i <= NUM_MINES_MAX) {
+        while (i <= numMinesMax) {
             int x = ng.next(boardWidth);
             int y = ng.next(boardHeight);
             if (!hiddenBoard[x][y].equals("+")) {
@@ -212,6 +176,13 @@ public class Minesweeper {
         gameOver = false;
     }
 
+    /**
+     * numberOfAdjacentMines calculates how many mines border a given cell.
+     *
+     * @param col column of cell
+     * @param row row of cell
+     * @return how many adjacent mines there are
+     */
     public int numberOfAdjacentMines(int row, int col) {
         int numMines = 0;
         for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, boardWidth - 1); r++) {
@@ -224,31 +195,24 @@ public class Minesweeper {
         return numMines;
     }
 
-    /**
-     * getCurrentPlayer is a getter for the player
-     * whose turn it is in the game.
-     * 
-     * @return true if it's gameOver,
-     *         false if it's not.
-     */
     public boolean getGameOver() {
         return gameOver;
     }
 
     public int getNumMines() {
-        return this.numMines;
+        return numMines;
     }
 
     public int getNumFlags() {
-        return this.numFlags;
+        return numFlags;
     }
 
     public void setNumFlags(int num) {
-        this.numFlags = num;
+        numFlags = num;
     }
 
     public void setNumMines(int num) {
-        this.numMines = num;
+        numMines = num;
     }
 
     /**
@@ -257,8 +221,7 @@ public class Minesweeper {
      *
      * @param c column to retrieve
      * @param r row to retrieve
-     * @return an integer denoting the contents of the corresponding cell on the
-     *         game board. 0 = empty, 1 = Player 1, 2 = Player 2
+     * @return the contents of the cell at the given row and column
      */
     public String getCell(int c, int r) {
         return board[r][c];
@@ -292,16 +255,6 @@ public class Minesweeper {
         this.hiddenBoard = inputHiddenBoard;
     }
 
-    /**
-     * This main method illustrates how the model is completely independent of
-     * the view and controller. We can play the game from start to finish
-     * without ever creating a Java Swing object.
-     *
-     * This is modularity in action, and modularity is the bedrock of the
-     * Model-View-Controller design framework.
-     *
-     * Run this file to see the output of this method in your console.
-     */
     public static void main(String[] args) {
 
     }
