@@ -1,6 +1,7 @@
 package org.cis1200.minesweeper;
 
 import java.util.Arrays;
+
 /**
  * CIS 120 HW09 - TicTacToe Demo
  * (c) University of Pennsylvania
@@ -30,16 +31,22 @@ public class Minesweeper {
 
     private String[][] hiddenBoard;
 
-    private int numMines;
-    private boolean player1;
+    private static int boardWidth = 25;
+    private static int boardHeight = 25;
+    public static final int NUM_MINES_MAX = 99;
+    private static int numMines;
+    private static int numFlags = 0;
     private boolean gameOver;
 
     /**
      * Constructor sets up game state.
      */
 
-    public Minesweeper() {
-//        reset();
+    public Minesweeper(int width, int height, int numMines) {
+        boardWidth = width;
+        boardHeight = height;
+        this.numMines = numMines;
+        reset();
     }
 
     /**
@@ -59,21 +66,26 @@ public class Minesweeper {
                 board[row][col] = "*";
                 gameOver = true;
                 return false;
+            } else if (board[row][col].equals("M") || board[row][col].equals("F")) {
+                return false;
             } else if (board[row][col].equals(" ")) {
                 board[row][col] = hiddenBoard[row][col];
                 if (hiddenBoard[row][col].equals("0")) {
-                    for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, 29); r++) {
-                        for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, 15); c++) {
+                    for (int r = Math.max(row - 1, 0); r <= Math
+                            .min(row + 1, hiddenBoard.length - 1); r++) {
+                        for (int c = Math.max(col - 1, 0); c <= Math
+                                .min(col + 1, hiddenBoard[0].length - 1); c++) {
                             if (!hiddenBoard[r][c].equals("+")) {
                                 if (hiddenBoard[r][c].equals("0")) {
                                     playTurn(c, r);
                                 }
-                                board[r][c] = hiddenBoard[r][c];
+                                if (!board[r][c].equals("M") && !board[r][c].equals("F")) {
+                                    board[r][c] = hiddenBoard[r][c];
+                                }
                             }
                         }
                     }
                 }
-
             }
             printGameState();
             return true;
@@ -86,48 +98,60 @@ public class Minesweeper {
             if (board[row][col].equals(" ")) {
                 if (hiddenBoard[row][col].equals("+")) {
                     board[row][col] = "M";
+                    this.numMines--;
                 } else {
                     board[row][col] = "F";
                 }
-                numMines--;
+                this.numFlags++;
             } else if (board[row][col].equals("M") || board[row][col].equals("F")) {
                 board[row][col] = " ";
-                numMines++;
+                this.numMines++;
+                this.numFlags--;
             }
             return true;
         }
         return false;
     }
 
-        /**
-         * checkWinner checks whether the game has reached a win condition.
-         * checkWinner only looks for horizontal wins.
-         *
-         * @return 0 if nobody has won yet, 1 if player 1 has won, and 2 if player 2
-         *         has won, 3 if the game hits stalemate
-         */
-    public int checkWinner() {
+    /**
+     * checkWinner checks whether the game has reached a win condition.
+     * checkWinner only looks for horizontal wins.
+     *
+     * @return 0 if nobody has won yet, 1 if player 1 has won, and 2 if player 2
+     *         has won, 3 if the game hits stalemate
+     */
+    public boolean checkWinner() {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (board[i][j].equals("F")) {
+                    return false;
+                }
+                if (board[i][j].equals(" ") && !hiddenBoard[i][j].equals("+")) {
+                    return false;
+                }
+            }
+        }
         // Check horizontal win
-//        for (int i = 0; i < board.length; i++) {
-//            if (board[i][0] == board[i][1] &&
-//                    board[i][1] == board[i][2] &&
-//                    board[i][1] != 0) {
-//                gameOver = true;
-//                if (player1) {
-//                    return 1;
-//                } else {
-//                    return 2;
-//                }
-//            }
-//        }
-//
-//        if (numTurns >= 9) {
-//            gameOver = true;
-//            return 3;
-//        } else {
-//            return 0;
-//        }
-        return 0;
+        // for (int i = 0; i < board.length; i++) {
+        // if (board[i][0] == board[i][1] &&
+        // board[i][1] == board[i][2] &&
+        // board[i][1] != 0) {
+        // gameOver = true;
+        // if (player1) {
+        // return 1;
+        // } else {
+        // return 2;
+        // }
+        // }
+        // }
+        //
+        // if (numTurns >= 9) {
+        // gameOver = true;
+        // return 3;
+        // } else {
+        // return 0;
+        // }
+        return true;
     }
 
     /**
@@ -135,70 +159,69 @@ public class Minesweeper {
      * for debugging.
      */
     public void printGameState() {
-        for (int row = 0; row < 30; row++) {
-            for (int col = 0; col < 16; col++) {
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board[0].length; col++) {
                 System.out.print(board[row][col] + " ");
             }
             System.out.println("");
         }
         System.out.println("\n");
-        for (int row = 0; row < 30; row++) {
-            for (int col = 0; col < 16; col++) {
+        for (int row = 0; row < hiddenBoard.length; row++) {
+            for (int col = 0; col < hiddenBoard[0].length; col++) {
                 System.out.print(hiddenBoard[row][col] + " ");
             }
             System.out.println("");
         }
     }
 
-
     /**
      * reset (re-)sets the game state to start a new game.
      */
     public void reset() {
-        board = new String[30][16]; //create new board
-        hiddenBoard = new String[30][16]; //create new board
-        for (int row = 0; row < 30; row++) { //fill with covered cells
-            for (int col = 0; col < 16; col++) {
+        board = new String[boardWidth][boardHeight]; // create new board
+        hiddenBoard = new String[boardWidth][boardHeight]; // create new board
+        for (int row = 0; row < boardWidth; row++) { // fill with covered cells
+            for (int col = 0; col < boardHeight; col++) {
                 board[row][col] = " ";
                 hiddenBoard[row][col] = "o";
             }
         }
 
-        //randomly generate positions for numMines
+        // randomly generate positions for numMines
         NumberGenerator ng = new RandomNumberGenerator();
         int i = 0;
-        while (i <= numMines) {
-            int x = ng.next(30);
-            int y = ng.next(16);
+        while (i <= NUM_MINES_MAX) {
+            int x = ng.next(boardWidth);
+            int y = ng.next(boardHeight);
             if (!hiddenBoard[x][y].equals("+")) {
                 hiddenBoard[x][y] = "+";
                 i++;
             }
         }
 
-        for (int row = 0; row < 30; row++) { //fill with covered cells
-            for (int col = 0; col < 16; col++) {
+        for (int row = 0; row < boardWidth; row++) { // fill with covered cells
+            for (int col = 0; col < boardHeight; col++) {
                 if (hiddenBoard[row][col].equals("o")) {
-                    int numMines = 0;
-                    for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, 29); r++) {
-                        for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, 15); c++) {
-                            if (hiddenBoard[r][c].equals("+")) {
-                                numMines++;
-                            }
-                        }
-                    }
-                    hiddenBoard[row][col] = Integer.toString(numMines);
+                    hiddenBoard[row][col] = Integer.toString(numberOfAdjacentMines(row, col));
                 } else {
                     hiddenBoard[row][col] = "+";
                 }
-//                board[row][col] = "o";
             }
         }
-        printGameState();
-
-//        numTurns = 0;
-//        player1 = true;
+        setNumFlags(0);
         gameOver = false;
+    }
+
+    public int numberOfAdjacentMines(int row, int col) {
+        int numMines = 0;
+        for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, boardWidth - 1); r++) {
+            for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, boardHeight - 1); c++) {
+                if (hiddenBoard[r][c].equals("+") || hiddenBoard[r][c].equals("M")) {
+                    numMines++;
+                }
+            }
+        }
+        return numMines;
     }
 
     /**
@@ -213,10 +236,19 @@ public class Minesweeper {
     }
 
     public int getNumMines() {
-        return numMines;
+        return this.numMines;
     }
+
+    public int getNumFlags() {
+        return this.numFlags;
+    }
+
+    public void setNumFlags(int num) {
+        this.numFlags = num;
+    }
+
     public void setNumMines(int num) {
-        numMines = num;
+        this.numMines = num;
     }
 
     /**
@@ -232,8 +264,32 @@ public class Minesweeper {
         return board[r][c];
     }
 
+    public void setHiddenCell(int c, int r, String val) {
+        hiddenBoard[r][c] = val;
+    }
+
     public String getHiddenCell(int c, int r) {
-        return hiddenBoard[r][c];
+        try {
+            return hiddenBoard[r][c];
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public String[][] getBoard() {
+        return Arrays.copyOf(board, board.length);
+    }
+
+    public String[][] getHiddenBoard() {
+        return Arrays.copyOf(hiddenBoard, hiddenBoard.length);
+    }
+
+    public void setBoard(String[][] inputBoard) {
+        this.board = inputBoard;
+    }
+
+    public void setHiddenBoard(String[][] inputHiddenBoard) {
+        this.hiddenBoard = inputHiddenBoard;
     }
 
     /**
@@ -247,36 +303,6 @@ public class Minesweeper {
      * Run this file to see the output of this method in your console.
      */
     public static void main(String[] args) {
-        Minesweeper t = new Minesweeper();
 
-        t.playTurn(1, 1);
-        t.printGameState();
-
-        t.playTurn(0, 0);
-        t.printGameState();
-
-        t.playTurn(0, 2);
-        t.printGameState();
-
-        t.playTurn(2, 0);
-        t.printGameState();
-
-        t.playTurn(1, 0);
-        t.printGameState();
-
-        t.playTurn(1, 2);
-        t.printGameState();
-
-        t.playTurn(0, 1);
-        t.printGameState();
-
-        t.playTurn(2, 2);
-        t.printGameState();
-
-        t.playTurn(2, 1);
-        t.printGameState();
-        System.out.println();
-        System.out.println();
-        System.out.println("Winner is: " + t.checkWinner());
     }
 }
