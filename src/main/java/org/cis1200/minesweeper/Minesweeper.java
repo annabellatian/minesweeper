@@ -5,9 +5,9 @@ import java.util.Arrays;
 public class Minesweeper {
     private String[][] board;
     private String[][] hiddenBoard;
-    private static int boardWidth = 25;
-    private static int boardHeight = 25;
-    public static int numMinesMax = 99;
+    private static int boardWidth;
+    private static int boardHeight;
+    private static int numMinesMax;
     private static int numMines;
     private static int numFlags = 0;
     private boolean gameOver;
@@ -61,7 +61,6 @@ public class Minesweeper {
                     }
                 }
             }
-            printGameState();
             return true;
         }
         return false;
@@ -115,6 +114,7 @@ public class Minesweeper {
                 }
             }
         }
+        gameOver = true;
         return true;
     }
 
@@ -154,7 +154,7 @@ public class Minesweeper {
         // randomly generate positions for numMines
         NumberGenerator ng = new RandomNumberGenerator();
         int i = 0;
-        while (i <= numMinesMax) {
+        while (i < numMinesMax) {
             int x = ng.next(boardWidth);
             int y = ng.next(boardHeight);
             if (!hiddenBoard[x][y].equals("+")) {
@@ -213,6 +213,10 @@ public class Minesweeper {
 
     public void setNumMines(int num) {
         numMines = num;
+    }
+
+    public void setGameOver(boolean bool) {
+        gameOver = bool;
     }
 
     /**

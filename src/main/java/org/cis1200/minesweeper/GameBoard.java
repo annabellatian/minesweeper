@@ -11,16 +11,16 @@ import java.nio.file.Paths;
 public class GameBoard extends JPanel {
     private Minesweeper ms; // model for the game
     private JLabel status; // current status text
-    private static int boardWidth = 25;
-    private static int boardHeight = 25;
-    private static int numMines = 99;
+    private static int boardWidth;
+    private static int boardHeight;
+    private static int numMines;
     public static final int CELL_WIDTH = 20;
     public static final int CELL_HEIGHT = 20;
 
     /**
      * Initializes the game board.
      */
-    public GameBoard(int width, int height, int numMines, JLabel statusInit) {
+    public GameBoard(int height, int width, int numMines, JLabel statusInit) {
         if (width <= 0 || height <= 0 || numMines < 0) {
             throw new IllegalArgumentException();
         }
@@ -97,6 +97,8 @@ public class GameBoard extends JPanel {
             bw.write(String.valueOf(ms.getNumMines()));
             bw.newLine();
             bw.write(String.valueOf(ms.getNumFlags()));
+            bw.newLine();
+            bw.write(String.valueOf(ms.getGameOver()));
             bw.close();
         } catch (IOException e) {
             throw new IOException();
@@ -116,8 +118,8 @@ public class GameBoard extends JPanel {
         try {
             BufferedReader br = FileLineIterator.fileToReader("files/savedGame.txt");
             FileLineIterator li = new FileLineIterator(br);
-            String[][] board = new String[25][25];
-            String[][] hiddenBoard = new String[25][25];
+            String[][] board = new String[boardWidth][boardHeight];
+            String[][] hiddenBoard = new String[boardWidth][boardHeight];
             for (int i = 0; i < board.length; i++) {
                 board[i] = li.next().split(",");
             }
@@ -127,6 +129,7 @@ public class GameBoard extends JPanel {
             }
             ms.setNumMines(Integer.parseInt(li.next()));
             ms.setNumFlags(Integer.parseInt(li.next()));
+            ms.setGameOver(Boolean.parseBoolean(li.next()));
             br.close();
             ms.setHiddenBoard(hiddenBoard);
             ms.setBoard(board);
@@ -143,10 +146,10 @@ public class GameBoard extends JPanel {
      * Updates the JLabel to reflect the current state of the game.
      */
     private void updateStatus() {
-        if (ms.getGameOver()) {
-            status.setText("Game Over!");
-        } else if (ms.checkWinner()) {
+        if (ms.checkWinner()) {
             status.setText("You Won!");
+        } else if (ms.getGameOver()) {
+            status.setText("Game Over!");
         } else {
             status.setText("Number of Mines Left: " + (numMines - ms.getNumFlags()));
         }
@@ -157,16 +160,17 @@ public class GameBoard extends JPanel {
      */
     @Override
     public void paintComponent(Graphics g) {
+        ms.printGameState();
         super.paintComponent(g);
         // Draws board grid
         for (int i = 0; i < boardWidth; i++) {
             for (int j = 0; j < boardHeight; j++) {
                 g.setColor(Color.BLACK);
-                int x = i * CELL_WIDTH;
-                int y = j * CELL_HEIGHT;
-                g.drawLine(x, 0, x, boardHeight * CELL_HEIGHT);
-                g.drawLine(0, y, boardWidth * CELL_WIDTH, y);
-                String cell = ms.getCell(i, j);
+                int x = j * CELL_WIDTH;
+                int y = i * CELL_HEIGHT;
+                g.drawLine(x, 0, x, boardWidth * CELL_HEIGHT);
+                g.drawLine(0, y, boardHeight * CELL_WIDTH, y);
+                String cell = ms.getCell(j, i);
                 if (!cell.equals(" ")) {
                     g.setColor(Color.decode("#a9a9a9"));
                     g.fillPolygon(
@@ -183,8 +187,8 @@ public class GameBoard extends JPanel {
                 } else if (cell.equals("*")) {
                     g.setColor(Color.BLACK);
                     g.fillOval(x + (CELL_WIDTH / 4) + 1, y + (CELL_HEIGHT / 4), 10, 10);
-                } else if ((ms.getHiddenCell(i, j).equals("+") && ms.getGameOver() ||
-                        ms.getHiddenCell(i, j).equals("+") && ms.checkWinner())) {
+                } else if ((ms.getHiddenCell(j, i).equals("+") && ms.getGameOver() ||
+                        ms.getHiddenCell(j, i).equals("+") && ms.checkWinner())) {
                     g.setColor(Color.BLACK);
                     g.fillOval(x + (CELL_WIDTH / 4), y + (CELL_HEIGHT / 4), 10, 10);
                 } else {
@@ -199,9 +203,9 @@ public class GameBoard extends JPanel {
                         default -> g.setColor(Color.GRAY);
                     }
                     if (cell.equals("0")) {
-                        g.drawString(" ", (i * CELL_WIDTH) + 6, (j * CELL_HEIGHT) + 14);
+                        g.drawString(" ", (j * CELL_WIDTH) + 6, (i * CELL_HEIGHT) + 14);
                     } else {
-                        g.drawString(cell, (i * CELL_WIDTH) + 6, (j * CELL_HEIGHT) + 14);
+                        g.drawString(cell, (j * CELL_WIDTH) + 6, (i * CELL_HEIGHT) + 14);
                     }
                 }
             }
@@ -257,6 +261,6 @@ public class GameBoard extends JPanel {
      */
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(boardWidth * CELL_WIDTH, boardHeight * CELL_HEIGHT + 94);
+        return new Dimension(boardHeight * CELL_HEIGHT, boardWidth * CELL_WIDTH + 94);
     }
 }

@@ -18,7 +18,7 @@ public class RunMinesweeper implements Runnable {
         status_panel.add(status);
 
         // Game board
-        final GameBoard board = new GameBoard(5, 5, 5, status);
+        final GameBoard board = new GameBoard(25, 25, 99, status);
         frame.add(board, BorderLayout.CENTER);
         frame.setPreferredSize(board.getPreferredSize());
 
@@ -26,7 +26,7 @@ public class RunMinesweeper implements Runnable {
         frame.add(control_panel, BorderLayout.NORTH);
 
         // Instructions button
-        final JButton instructions = new JButton("Instructions");
+        final JButton instructions = new JButton("Info");
         instructions.addActionListener(
             e -> JOptionPane.showMessageDialog(frame,
             "Minesweeper is a game where mines are hidden in a grid of squares. \n" +
@@ -46,7 +46,7 @@ public class RunMinesweeper implements Runnable {
                     "will still update. You cannot place more flags down than there are \n" +
                     "mines on the board - the flag function will automatically disable and \n" +
                     "you will not be able to place down another flag until you remove an \n" +
-                    "existing flag. Once you uncover all the squares with no mines, you win " +
+                    "existing flag. Once you uncover all the squares with no mines, you win \n" +
                     "the game! \n" + "\n" +
                     "To save your game progress, you can click 'Save Game' in the control \n" +
                     "panel - your game is not automatically saved. To resume the last saved \n" +
@@ -63,7 +63,7 @@ public class RunMinesweeper implements Runnable {
         control_panel.add(reset);
 
         // Save Game button
-        final JButton save = new JButton("Save Game");
+        final JButton save = new JButton("Save");
         save.addActionListener(e -> {
             try {
                 board.save();
@@ -74,7 +74,7 @@ public class RunMinesweeper implements Runnable {
         control_panel.add(save);
 
         // Resume button
-        final JButton resume = new JButton("Resume Game");
+        final JButton resume = new JButton("Resume");
         resume.addActionListener(e -> board.resume());
         control_panel.add(resume);
 
